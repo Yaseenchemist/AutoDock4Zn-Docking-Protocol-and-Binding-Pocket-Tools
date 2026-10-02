@@ -1,0 +1,20 @@
+python
+from pymol import cmd
+import numpy as np
+
+ref  = "prolig and resn ZZ2 and not hydro"      # الليكاند الأصلي
+dobj = "chimera_result"                          # poses الدوكنج
+
+ref_xyz = np.array(cmd.get_coords(ref, 1))
+print("ref heavy =", len(ref_xyz),
+      " dock heavy =", cmd.count_atoms(dobj + " and not hydro"))
+
+best = (None, 1e9)
+for s in range(1, cmd.count_states(dobj) + 1):
+    pose = np.array(cmd.get_coords(dobj + " and not hydro", s))
+    m = min(len(ref_xyz), len(pose))
+    rmsd = float(np.sqrt(((ref_xyz[:m] - pose[:m])**2).sum(1).mean()))
+    print("state %2d   RMSD = %.3f A   (matched %d)" % (s, rmsd, m))
+    if rmsd < best[1]: best = (s, rmsd)
+print(">>> BEST redock: state %s   RMSD = %.3f A" % best)
+python end
